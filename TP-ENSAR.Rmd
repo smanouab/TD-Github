@@ -1,0 +1,1976 @@
+---
+title: "TP-ENSAR-R"
+author: "Solym Manou-Abi"
+date: "2024-09-22"
+output:
+  html_document: default
+  word_document: default
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Echantillonnage aléatoire simple
+```{r}
+p_iris <- survey::svydesign(
+  ids = ~ 1, 
+  data = iris
+)
+View(p_iris)
+p_iris$variables
+```
+
+#Pour un jeu de données simplement pondéré (chaque ligne représente plusieurs observations) :
+
+```{r}
+titanic =dplyr::as_tibble(Titanic) #data
+titanic |> labelled::look_for() #look for data
+```
+
+```{r}
+p_titanic <- survey::svydesign(
+  ids = ~ 1, 
+  data = titanic, 
+  weights = ~ n
+)
+p_titanic
+```
+
+```{r}
+library(dplyr)
+```
+
+##Pour un échantillon stratifié pour lequel les strates sont indiquées dans la variable stype et les poids indiquées dans la variable pw.
+```{r}
+data("api", package = "survey") #chargement
+View(apistrat) #la data est apistrat
+p_strates <- survey::svydesign(
+  id = ~ 1, 
+  strata = ~ stype, 
+  weights = ~ pw, 
+  data = apistrat
+)
+p_strates
+```
+
+#Pour une enquête en grappes à 1 degré, pour laquelle l’identifiant des grappes (clusters) est indiqué par la variable dnum.
+
+```{r}
+data("api", package = "survey")
+p_grappes <- survey::svydesign(
+  id = ~ dnum, 
+  weights = ~ pw, 
+  data = apiclus1
+)
+p_grappes
+```
+# Enquête en grappes à deux degrés
+
+```{r}
+data("api", package = "survey")
+p_grappes2 <- survey::svydesign(
+  id = ~ dnum + snum,
+  fpc = ~ fpc1 + fpc2,
+  data = apiclus2
+)
+p_grappes2
+```
+
+
+```{r}
+library(sampling)
+t = srswor(20, 200)
+x = 1:200 
+x[t != 0]
+```
+```{r}
+U = c("Bob", "Nico", "Ali", "Fabien", "Malik", "John", "Jean", "Chris", "Karl")
+library(sampling)
+t = srswor(3, 9)
+w = U[t != 0]
+w
+```
+
+\section{Cartographie spatiale}
+## Avec leaflet
+
+```{r}
+library(leaflet)
+map = leaflet()%>%addTiles()
+map
+```
+
+
+```{r}
+map = leaflet()%>%addProviderTiles("Esri.OceanBasemap")
+map
+```
+
+
+```{r}
+map = leaflet(meteo)%>%addProviderTiles("Esri.OceanBasemap")%>%
+  addCircles(lng=meteo$lon,lat=meteo$lat)
+map
+```
+
+
+```{r}
+map = leaflet(meteo)%>%addProviderTiles("Esri.OceanBasemap")%>%
+  addMarkers(lng=meteo$lon,lat=meteo$lat)
+map
+```
+
+
+```{r}
+meteo=na.omit(meteo)
+meteo
+```
+
+
+```{r}
+map = leaflet(meteo)%>%addProviderTiles("Esri.OceanBasemap")%>%
+  addCircleMarkers(~ meteo$lon,~meteo$lat)
+map 
+```
+
+
+
+
+```{r}
+install.packages("ggmap")
+library(ggmap)
+```
+
+```{r}
+library(sf)
+nyc <- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
+class(nyc)
+nyc$NAME
+```
+
+```{r}
+library(ggplot2)
+ggplot(nyc)+geom_sf()
+```
+
+```{r}
+martinique <- sf::st_read(
+  dsn = system.file("gpkg/mtq.gpkg", package="cartography"),
+  quiet = TRUE)
+View(martinique)
+write_sf(martinique,"Martinique.shp")
+```
+
+```{r}
+Mayotte_sf1 = st_read(dsn = "MayotteCommunesGEOFLA.shp",quiet = TRUE)
+View(Mayotte_sf1)
+```
+
+
+```{r}
+Mayotte_sf1 = st_read(dsn = "976_Village.shp",quiet = TRUE)
+View(Mayotte_sf1)
+Mayotte_sf1 $pop_2012
+```
+
+```{r}
+library(ggplot2)
+ggplot(Mayotte_sf1)+geom_sf(aes(fill = pop_2012))
+```
+
+```{r}
+View(myt_map_commune)
+meteo2$X
+```
+
+```{r}
+
+meteo=st_as_sf(x = meteo2,                         
+             coords = c("X", "Y"),
+             crs = 4326)
+View(meteo)
+```
+
+
+```{r}
+map = mayotte_sf %>% 
+  ggplot() + geom_sf()  + 
+  geom_point(data = dechet_sf %>% filter(!is.na(waste_type)), aes(X, Y, col = waste_type),size=3) + 
+  xlab("Longitude") + ylab("Latitude") + theme_map()
+```
+
+```{r}
+meteo2_sf <- st_as_sf(meteo2,coords = c("X", "Y"),crs = 4326)
+View(meteo2_sf)
+```
+
+```{r}
+library(ggplot2)
+ggplot(martinique)+geom_sf(aes(fill = POP))
+```
+
+
+```{r}
+table(nyc$NAME)
+
+```
+
+
+```{r}
+part <- nyc %>%filter(str_detect(NAME, "A"))
+nyc$PERIMETER
+```
+
+
+```{r}
+Mayotte_sf1$insee_com=c("Dzaoudzi","Pamandzi","Acoua","Mamoudzou","Dembeni","Boueni","Kani-Keli","Chirongui","Bandrele","Bandraboua","Koungou","Mtsangamouji","Tsingoni","Chiconi","Ouangani","Sada","Mtsamboro")
+Mayotte_sf1$commune=str_to_upper(Mayotte_sf1$insee_com)
+```
+
+```{r}
+library(ggplot2)
+ggplot(Mayotte_sf1)+geom_sf(aes(fill = superficie))
+```
+
+
+
+```{r}
+France =st_read(dsn ="ARRONDISSEMENT.shp",
+  quiet = TRUE)
+France$NOM_DEPT
+```
+
+```{r}
+library(stringr)
+France%>%ggplot() +geom_sf()
+View(France)
+```
+
+```{r}
+View(df_spatial)
+View(meteo2)
+meteo2$geometry=df_spatial$geometry
+df_spatial%>%ggplot(mayotte) +geom_sf()
+df_spatial$X=meteo2$X
+df_spatial$Y=meteo2$Y
+class(df_spatial)
+```
+
+
+
+```{r}
+df_spatial <- sf::st_as_sf(meteo2,coords = c("X", "Y"), crs= "RGF93 v1 / Lambert-93")
+st_crs(df_spatial)
+df_spatial$X=meteo2$X
+df_spatial$Y=meteo2$Y
+df_spatial$NAME
+```
+
+
+
+```{r}
+quebec <- st_read("comet_l.shp")
+head(quebec)
+st_crs(quebec)
+```
+
+
+```{r}
+plot(quebec)
+```
+
+
+```{r}
+View(meteo2)
+meteo_sf <- meteo2 %>% 
+  st_as_sf(coords = c("X", "Y"), crs= "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+View(meteo_sf)
+
+st_crs(mayotte_sf)
+```
+
+
+```{r}
+log_lat <- dplyr::select(meteo2, X, Y)
+
+meteo2_xy <- meteo2 %>% dplyr::select(X, Y)
+meteo2_sf <- st_as_sf(meteo2, coords = c("X", "Y"),
+                            crs= "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+
+meteo2_sf <- st_transform(meteo2_sf, crs = st_crs(mayotte_sf))
+View(meteo2_sf)
+pn_coords <- st_coordinates(meteo2_sf) %>% data.frame()
+meteo2_sf <- bind_cols(meteo2_sf, st_coordinates(st_centroid(meteo2_sf$geometry)))
+
+intersections <- st_intersects(meteo2_sf$geometry, mayotte_sf)
+meteo2_sf <- mayotte_sf$commune[as.integer(intersections)]
+meteo2_sf <- mayotte_sf$commune[as.integer(intersections)]
+```
+
+
+```{r}
+mayotte_grid <- myt_map %>% 
+  st_make_grid(n = 80, what = "centers") %>% 
+  st_sf() %>%  # transformer en objet sf
+  st_join(mayotte_sf, join = st_intersects) %>% 
+  drop_na()
+```
+
+
+
+```{r}
+mayotte_sf$commune
+ggplot(mayotte_sf) +
+  geom_sf(aes(fill = commune))
+```
+
+```{r}
+st_crs(meteo_sf)
+View(meteo_sf)
+meteo_sf <- bind_cols(meteo_sf, st_coordinates(st_centroid(meteo_sf$geometry)))
+meteo_sf <- st_transform(meteo_sf, crs = st_crs(mayotte_sf))
+#meteo_sf=bind_cols(meteo_sf, st_coordinates(meteo_sf))
+```
+
+
+```{r}
+myt_map <- read_sf("976_Village.shp") %>% 
+  mutate(commune = ifelse(commune %in% c("BOUENI", "BOUNENI"), "BOUENI", commune),
+         village = gsub("Mtzamboro", "Mtsamboro", village))
+View(myt_map)
+```
+
+
+
+```{r}
+library(ggplot2)
+ggplot(data = meteo_sf) +geom_sf()
+```
+
+
+
+
+```{r}
+map <- quebec_sf %>% 
+  ggplot() + geom_sf() + geom_point(data = meteo_c_sf %>% filter(!is.na(cumul_precip)), aes(X, Y, col = cumul_precip),size=3) + 
+  xlab("Longitude") + ylab("Latitude")
+```
+
+```{r}
+library(stringr)
+mayotte %>%ggplot() +geom_sf(aes(fill =superficie))  +
+   geom_sf_label(aes(label =insee_com))
+```
+
+```{r}
+library(stringr)
+nyc %>%filter(str_detect(NAME, "A"))%>%ggplot() +
+   geom_sf(aes(fill =PERIMETER))  +
+   geom_sf_label(aes(label = NAME))
+```
+
+```{r}
+dpt <- read_sf("data/dpt")
+```
+
+## S'enregistrer pour une clé API Google
+```{r}
+register_google(key = "f30f1a04-049e-4e9a-a555-cc6a3c50c1a9")
+```
+
+
+
+```{r}
+register_google(key = "f30f1a04-049e-4e9a-a555-cc6a3c50c1a9")
+geocode("France") 
+```
+
+
+
+
+```{r}
+library(ggmap)
+us <- c(left = -125, bottom = 25.75, right = -67, top = 49)
+map <- get_stadiamap(us, zoom = 5, maptype = "stamen_toner_lite")
+ggmap(map)
+```
+
+```{r}
+europe <- c(left = -12, bottom = 35, right = 30, top = 63)
+get_stadiamap(europe, zoom = 5,"stamen_toner_background") %>% ggmap()
+```
+
+```{r}
+meteo=read.csv("weather.csv", sep=";")
+View(meteo)
+names(meteo)
+meteo$lat
+meteo$lon
+```
+
+```{r}
+meteo2=read.csv("meteo-Mayotte.csv", sep=";")
+meteo2$X=str_replace(meteo2$X,fixed(","),'.')
+meteo2$Y=str_replace(meteo2$Y,fixed(","),'.')
+```
+
+```{r}
+qmplot(X,Y, data =meteo2, maptype = "stamen_toner_lite", color=I("blue"))
+```
+
+```{r}
+xlims=c(min(meteo$lat),max(meteo$lat))
+xlims
+ylims=xlims=c(min(meteo$lon),max(meteo$lon))
+ylims
+```
+
+## Carte correspondant à la donnée meteo
+```{r}
+Canada <- c(left = -81,right = -59, bottom = 44, top = 51)
+get_stadiamap(Canada, zoom = 5,"stamen_toner_lite") %>% ggmap()
+```
+
+
+
+
+```{r}
+qmplot(lon, lat, data =meteo, maptype = "stamen_toner_lite", color=I("blue"))
+```
+
+```{r}
+library("ggmap")
+map <- get_stadiamap(Canada, zoom = 5, maptype = "stamen_toner_lite")
+
+ggmap(map) + 
+geom_point(data = meteo, mapping = aes(x = lon, y = lat, color=I("red")))
+```
+
+```{r}
+ggmap(map, base_layer = ggplot(meteo, aes(x = lon, y = lat, color="red"))) + geom_point()
+```
+
+```{r}
+Afrique <- c(left = -25, bottom = -34, right = 64 , top = 38)
+get_stadiamap(Afrique, zoom = 5,"stamen_toner_lite") %>% ggmap()
+```
+
+
+
+#Visualiser les stations 
+```{r}
+ggplot(meteo, aes(lat,lon))+geom_point()
+```
+
+```{r}
+xlims=c(min(meteo$lat),max(meteo$lat))
+ylims=xlims=c(min(meteo$lon),max(meteo$lon))
+min(xlims)
+```
+
+```{r}
+register_stadiamaps("f30f1a04-049e-4e9a-a555-cc6a3c50c1a9", write = TRUE)
+```
+
+```{r}
+library(sf)
+nc <- st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
+class(nc)
+```
+
+##Shapefile Europ
+```{r}
+library(sf)
+Europe_sf <- st_read("Europe_merged.shp", quiet = TRUE)
+Europe_sf
+```
+
+
+
+## Partie 1 : Création et manipulation de vecteurs et matrices.
+
+#Creation de vecteur et de matrices #Les commentaires apparaissent après
+le symbole \# #La compilation se fait de plusieurs manières: - Soit avec
+la petite flêche verte au sein de la cellule (Run current chunk qui
+signifie, complilation de la cellule) -Soit aen haut à droite avec
+l'icone Run, vous pouvez sélectionner par exemple Run Current Chunk \#
+La fonction c() pour créer un vecteur de valeurs séparées par des
+virgules comme l'exemple suivant #Attention c'est avec un petit c
+
+```{r}
+##Création d’un vecteur à  la main
+y=c(1,2,3,4)
+```
+
+##Pour afficher vos valeurs faite appel à y et complier avec la flêche
+en vert à droite
+
+```{r}
+#pour afficher
+y 
+```
+
+# Si un message d'erreur appariat du style Error: object 'y' not found, cela signifie que vous avez oublié de compiler le code
+
+```{r}
+#On peut aussi créer un vecteur de caractères
+a <- c("A","B","C")
+a #pour afficher
+```
+
+# Création d'un vecteur en utilisant des séquences ou des répétitions avec les fonctions rep et seq
+
+```{r}
+# rep(a,n) : replique la valeur de a au total n fois
+x1 <- rep(1,4) 
+x1
+```
+
+```{r}
+# seq(a,b,h) : affiche une suite de valeur allant de a à b de pas h
+y1<-seq(1,2,0.25)
+y1 # seq : sequence de pas donné
+```
+
+# La fonction seq peut aussi s'écrire de la manière suivante
+
+```{r}
+#seq(a,b,length=l) crée un vecteur allant de a à b de longueur l
+y2 = seq(1,2,length=20) # il faut lui specifier la longueur avec length
+y2 # sequence de longueur donné
+```
+
+#Vecteurs booleans #Les opérations logiques définies via \<, \<=, \>,
+\>=, == (test d'égalité), ! = (différent) renvoient TRUE ou FALSE ;
+
+```{r}
+x=1:8 #une autre manière de créer une suite de valeurs consecutives de 1 à 3.
+y=seq(1,5,0.5) # rappel vecteur allant de 0 à 2 de pas 0.5
+#Si vous voulez affichez "y" il faut le saisir et compilé de nouveau
+```
+
+#Pour connaitre la longueur d'un vecteur
+
+```{r}
+length(y) #affiche la longueur du vecteur y
+length(x)
+```
+
+#Pour tester les valeurs de x qui sont supérieur ou égale à y
+
+```{r}
+x>=y
+#le résultat est une suite de TRUE (Vrai) ET FASLE (Fauc)
+```
+
+#Accéder aux composantes d'un vecteur : utilisation de [ ]
+
+```{r}
+## Créer les vecteurs suivants
+y=c(6,9,10)
+a=c("A","B","C")
+```
+
+```{r}
+y[1]# Pour afficher la première valeur de y
+a[2] # Pour afficher la première valeur de y
+y[c(1,3)] # Pour afficher à la fois la première et troisième valeur de y
+y[-1] # Pour afficher toutes les valeurs sauf la première valeur
+y[y>8] # Afficher les valeurs de y qui sont supérieurs à 8
+y[y==9] # Afficher les valeurs qui sont égales à 9
+#Attention le test d'égalité se fait avec deux fois le symbole =
+a[c(TRUE,TRUE,FALSE)] # Affihe le premier et le second caractère
+```
+
+##Création de matrices #Methode 1 : par "collage" de vecteurs lignes ou
+colonnes
+
+```{r}
+#Creation des vecteur
+A<-1:4 #idem A<- c(1,2,3,4)
+B<- seq(5,8) #idem B=c(5,6,7,8)
+C<- c(9,10,11,12)
+length(A)
+length(B)
+```
+
+# collage des colonnes col
+
+```{r}
+M1 <-cbind(A,B,C)
+M1
+```
+
+# \# collage des lignes (row)
+
+```{r}
+M2 <-rbind(A,B,C)
+M2
+```
+
+#Pour connaitre la dimension d'une matrice
+
+```{r}
+dim(M1) #Affiche le nombre de lignes et de colonnes
+```
+
+#Remarque : Les fonctions cbind() et rbind() permettent de fusionner des
+vecteurs, des matrices, des tableaux individus-variables (appelés
+dataframe, un objet R qu'on manipulera à la prochaine séance)
+
+Creation de matrices avec la fonction matrix
+
+```{r}
+ #remplissage par colonnes
+M1 <-matrix(1:12,nrow=3)
+M1
+```
+
+```{r}
+# rajouter byrow=TRUE pour remplissage par ligne
+M2 <-matrix(1:12,nrow=3,byrow=T)
+M2
+##Attention : Si la dimension du vecteur utilisé pour la construction de la matrice n’est pas égale à ncol × nrow, alors ce sera une construction par complétion tant que nécessaire !
+```
+
+#Extraire d'une matrice une sous-matrice particulière
+
+```{r}
+M1[2,] # extraire toute la ligne 2
+```
+
+```{r}
+ #extraire les colonnes 2 et 3
+M1[,c(2,3)]
+```
+
+# Appliquer une fonction sur toutes lignes ou colonnes d'une matrice
+
+```{r}
+apply(M1,1,sum) # somme (sur colonnes) à lignes fixées
+apply(M1,2,sum) # somme (sur lignes) à colonnes fixées
+```
+
+```{r}
+# min à colonnes fixées
+apply(M1,2,min) 
+```
+
+#Tri d'un vecteur avec sort() ; order()
+
+```{r}
+x<-c(2,4,6,5,3,1) #creation d'un vecteur
+sort(x) # retourne le vecteur ordonné
+```
+
+```{r}
+order(x) # retourne le rang des composantes ordonnees de x
+```
+
+#Opérations sur les vecteurs ou matrices
+
+```{r}
+x<-c(1,1)
+y<-c(2,3)
+
+x+y #la somme des vecteurs
+x*y #le produit des vecteur
+```
+
+```{r}
+3*M1 #le produit de la matrice précédemment nommée M1 avec la valeur 3
+#M1%*%M2 # Le produit matriciel se fait avec l'operation %*%
+```
+
+```{r}
+#valeurs propres si matrice carrée
+M=matrix(c(1,0,0,0,1,0,0,0,1),nrow=3,ncol=3)
+eigen(M) # Retourne les valeurs et vecteurs propres de M
+solve(M) # inverse s'il existe, ici déterminant proche de 0 donc problème
+t(M1) # transposee de M1
+det(M)# Determinant de M
+A=M^2 #matrixe au carré
+B=c(0,0,0)
+solve(A,B) # solution de Ax=B
+```
+
+##Opérateurs logiques ; fonction which pour rechercher les positions
+(indices) des éléments
+
+▶ La fonction which() permet de récupérer les indices descomposantes
+vérifiant une propriété donnée ; ▶ Les fonctions which.min() ou
+which.max() renvoient l'indice de la composante min ou max du vecteur
+
+```{r}
+#Creation de vecteurs
+x=c(1,2,4)
+y=c(1,3,2)
+which(y==3)#renvoie l'indice ou la position de la valeur égale à 3
+which(y>1) # renvoie les indices des valeurs plus grand que 1
+```
+
+## Extraction sous condition
+
+```{r}
+y[y>2] # extraction des valeurs de y plus grands que 2
+x[x==1] #extraction des valeurs de x égales à 1
+```
+
+▶ Exercice TP
+#1. Créer deux vecteurs poids et taille de composantes \#(60, 72, 57,
+90, 95, 72) et (1.75, 1.80, 1.65, 1.5, 1.74, 1.91). #2. Calculer bmi =
+poids/taille 2 #3. Quelle est la valeur max de bmi ? #4. Quel est
+l'indice de la composante du vecteur bmi correspondant au min des bmi ?
+#5. Créer un vecteur ayant seulement les composantes \> 20 de bmi.
+Combien a-t-il d'éléments ? #6. Créer une matrice de type individus ×
+variables avec les variables poids, taille et bmi. #7. Ordonner le
+tableau de données obtenu selon les valeurs de bmi. #8. Calculer le
+poids moyen et la taille moyenne.
+
+\section{Lecture de divers fichiers de données}
+
+##Importation de la bse Prof à télécharger sur UPdago #ou sur ma page
+web ou sur ma page Github (Repositoire nommé Data_access)
+
+#Lire un fichier .txt : fonction read.table (qui crée un data.frame)
+
+▶Si la première ligne du fichier contient le nom des variables, ▶
+l'option Header=T (true) doit être utilisée sinon F (false)
+
+▶ Connection des bases : \# ▶ Mettez les bases et le fichier de codes R
+ici .Rmd (car Rstudio) dans un meme fichier par exempke \# ▶ Ensuite
+Session puis Set Working Directory (Chargement du repertoire courant)
+puis To Source File location (source) ▶ La commande précédente suppose
+que le fichier est dans le répertoire courant (répertoire de travail de
+la session R en cours) \# ▶ On peut vérifier dans le cas contraire, le
+chemin (lieu déposé) pour accéder au fichier .
+
+# La commande getwd() permet de connaître son reportoire courant \# La commande setwd() de fixer son repertoire courant à spécifier entre les parenthèse
+
+#Exemple
+
+```{r}
+setwd("/Users/solym/Desktop/TP-ENSAR")
+```
+
+```{r}
+##Lecture d'une base au format /.txt
+Base1=read.table("RGPH_MLI.txt",header=T)
+##Visualisation de la bse
+View(Base1) 
+#Apercu de quelques lignes et quelques colonnes de la base
+head(Base1)
+```
+
+#Extraction des colonnes
+
+```{r}
+Base1$Y # Extraction du vecteur des valeurs de la colonne Y
+Base1$X1 # Extraction du vecteur des valeurs de la colonne X1
+```
+
+##On peut aussi charger une base de données depuis Rstudio en allant
+dans File (Fichiers) ensuite Import Data set (Importation)
+
+#Après l'avoir importer vous pouvez modifier le nom de la abse
+
+```{r}
+base=nom_importer
+attach(base)
+```
+
+▶ Les fonctions R attach() . . .detach( ) peuvent être ensuite utilisées
+pour travailler directement sur les dataframe créés.
+
+## Lecture de fichier de données .csv : la fonction read.csv( )
+
+#Parmi les options disponibles, on citera notamment :
+
+▶ header : indique si la première ligne du fichier contient les noms des
+variables (valeur TRUE) ou non (valeur FALSE) ▶ sep indique le caractère
+séparant les champs. En général soit une virgule, soit un point-virgule,
+soit une tabulation.
+
+▶ dec indique quel est le caractère utilisé pour séparer les nombres et
+leurs décimales. Il s'agit le plus souvent de la virgule lorsque les
+données sont en français et le point pour les données anglophones.
+
+```{r}
+#Importation de la base RGPHMLI au format csv
+Base2=read.csv("RGPHMLI.csv",sep=" ;",header = T)
+View(Base2)
+```
+
+#Importation de fichiers Excel Excel est l'un des tableurs les plus
+populaires. Il est difficile de l'exclure du workflow du Data officer
+
+```{r}
+#Le package xlsx offre deux fonctions majeures pour la lecture des formats xls et xlsx. Il s’agit de read.xlsx et read.xlsx2 (plus rapide sur les fichiers lourds).
+#Chargement du package "xlsx" avec library(xlsx).
+library(xlsx)
+```
+
+```{r}
+Base3= read.xlsx("RGPH_MLI.xlsx",sheetIndex = 1,startRow = 1,header = TRUE)
+```
+
+```{r}
+View(Base3)
+```
+
+```{r}
+url <-"https://jhub.appli.univ-poitiers.fr/hub/user-redirect/lab/tree/Data/RGPH_MLI.xlsx"
+Base_online <- read_excel(url)
+View(Base_online)
+```
+
+#Importation depuis Internet Les données peuvent aussi être tirées de la
+toile mondiale. Les outils disponibles dans R varient selon le type de
+données
+
+▶ ▶ ▶vPour un fichier .csv, le chargement dans l'environnement R se fait
+de la même façon que pour des fichiers locaux.
+
+Si url désigne le lien web de sauvegarde de votre base de données alors
+
+```{r}
+Base=read.csv2(url,sep = " ;", header = T) 
+#est la commande pour importer la base en question directement par son lien web
+```
+
+\section{Séance 2 du 03/12: Exporter des données}
+
+R propose également différentes fonctions permettant d'exporter des
+données vers des formats variés.
+
+▶ write.table; write.csv, write.xlsx est l'équivalent de read.table,
+read.csv, read.xlsx permettant d'enregistrer des tableaux de données au
+format texte, avec de nombreuses options.
+
+```{r}
+#Importation de la base RGPHMLI au format csv
+Base2=read.csv("RGPH_MLI.csv",sep=";",header = T)
+```
+
+##Voir la base
+
+```{r}
+View(Base2)
+```
+
+##Aperçu de la base (quelques lignes et quelques variables)
+
+```{r}
+head(Base2)
+```
+
+```{r}
+#Selection des 10 premieres colonnes 
+Data_import=Base2[,c(1:10)]
+#Garder les lignes dont la colonne est superieur à 1976
+Data_import2=Data_import[Data_import$annee>1976,]
+View(Data_import2)
+```
+
+#sheetIndex : indique le numéro de l'onglet à importer #startRow = 1:
+déclare la première ligne comme nom de colone, équivalent de header =T
+
+```{r}
+#Data est la base que vous voulez exporter.
+#Data_export.csv est la base exportée (apparaissant par défaut dans votre repertoire courant)
+write_csv(Data_import2,file="Importation.csv") 
+```
+
+\section{Partie 2 :Manipulation et exploration}
+
+##Facteurs et Data frames ##Representation du tableau de donnée par une
+liste
+
+▶ Une liste est une structure de données permettant de regrouper des
+données de manière à pouvoir y accéder librement!
+
+Certains langages de programmation font la distinction entre les listes,
+les arrays ou encore les tuples,
+
+#Représentation par une liste de colonnes
+
+```{r}
+# Ici s designe le nom de la liste (tableau)
+Tab = list() #Crée une liste ici tableau vide
+Tab$Sex= c("M","F","M","M","F") 
+Tab$Salary = c(30e3,40e3,55e3,38e3,35e3) 
+Tab$Hours=c(38,45,38,40,35) 
+Tab$Edu=c("H","M","D","B","B")
+Tab$Age = c(32,41,45,24,"NA") 
+survey= data.frame(Tab) #Cree la Dataframe nommée Enquete (survey)
+```
+
+##Visualisation du Tableau
+
+```{r}
+survey
+```
+
+```{r}
+survey["Edu"]
+survey$Sex
+survey$Sex
+survey$Salary
+```
+
+```{r}
+class(survey$Salary)
+class(survey$Sex)
+```
+
+#Facteurs
+
+▶ Ils sont utilisés pour représenter les valeurs catégorielles
+
+```{r}
+c("M","F","M","M","F")
+```
+
+```{r}
+factor(nom_du_vecteur)#retournr nom_du_vecteur commee un facteur
+```
+
+```{r}
+s$Sex =factor(c("M","F","M","M","F"))
+```
+
+```{r}
+s$Edu
+class(s$Edu)
+s$Edu=factor(s$Edu) ## Par defaut les niveaux d'un factor apparaissent par ordre alphabetique.
+```
+
+```{r}
+class(s$Sex)
+```
+
+```{r}
+#syntaxe generale 
+#La syntaxe levels(nom_colonne) retourne les différents niveau du facteur nom_colonne
+```
+
+▶ Les valeurs catégorielles s'étendent sur un ensemble d'étiquettes :
+levels
+
+```{r}
+levels(s$Sex)
+```
+
+▶ Chaque étiquette se voit attribuer un nombre entier consécutif unique
+##Ici M (2ème de la liste) en premiere modalite ensuite F ensuite M
+encore M et F
+
+```{r}
+as.integer(s$Sex)
+```
+
+```{r}
+typeof(s$Sex)
+```
+
+##Facteurs ordonnés
+
+▶ Les étiquettes d'un facteur peuvent avoir un ordre prédéfini
+
+▶ Ils sont utilisés pour comparer les différentes étiquettes d'un même
+facteur.
+
+```{r}
+#nom_vecteur=factor(nom_vecteur, levels=(niveaux), ordered=TRUE) #syntaxe qui permet de transformer une colonne sous la forme d'un facteur avec les "niveaux" précisés dans  et l'option ordered=TRUE specifie l'ordre souhaite 
+#niveaux=c("A","B","C","D") par exemple
+```
+
+```{r}
+s$Edu=factor(x=c("H","M","D","B","B"), levels=c("N","P","H","B","M","D"), ordered=TRUE)
+```
+
+```{r}
+s$Edu
+```
+
+##Affiche les niveaux
+
+```{r}
+levels(s$Edu)
+```
+
+```{r}
+as.integer(s$Edu)
+```
+
+# H (3ème niveau) en première position
+
+# M (5ème niveau) en seconde position
+
+# D (6ème niveau) en troisème position
+
+# B (4ème niveau) en quatrième et 5 ème position
+
+## Faire des test logiques
+
+## suppose que les niveaux de facteurs ordonnée
+
+```{r}
+s$Edu > "B"
+```
+
+```{r}
+survey$Sex
+class(survey$Sex)
+survey$Age
+Age
+attach(survey)#fixe la base et vous permet ainsi de faire appel directement aux noms
+class(Sex)
+```
+
+```{r}
+x=c(1,2,3,4)
+x[x>1]
+mean(x)
+s$Edu=factor(s$Edu,ordered = TRUE)
+mean(s$Salary[s$Edu > "B"])
+```
+
+#Verification à la main : (40mille + 55 mille)/2 = 47500
+
+##Data frames : Les Tableaux de données : creation des variables
+(colonnes) et leur contenu
+
+```{r}
+survey=data.frame(
+Sex=c("M","F","M","M","F"),
+Salary=c(30000,40000,55000,38000,35000),
+Hours=c(38,45,38,40,35),
+Edu=factor(x=c("H","M","D","B","B"),levels=c("N","P","H","B","M","D"),
+ordered=TRUE),
+Age=c(32,41,45,24,NA)
+)
+```
+
+▶ Attention: Les colonnes crées doivent avoir la même longueur
+
+```{r}
+survey
+```
+
+▶ Les vecteurs de caractères sont convertis en facteurs non ordonnés
+
+```{r}
+survey$Edu
+as.integer(survey$Edu)
+```
+
+```{r}
+survey$Edu >"B" #operation pas possible si ordered not TRUE
+```
+
+\subsection{Manipulation}
+
+▶ Manipuler les étiquettes de facteurs #Les étiquettes peuvent être
+modifiées (dans l'ensemble) #Des Erreurs apparaitront si taille des
+valeurs différentes
+
+```{r}
+names(survey) #affiche les noms de la base 
+table(survey$Sex)# affiche les différentes modalités de la colonne sex
+head(survey)
+table(survey$Edu)## j'ai 4 modalites B D H M
+class(survey$Edu)
+survey$Edu=factor(survey$Edu,ordered = TRUE) #Transforme la collone Edu en facteur
+class(survey$Edu)
+levels(survey$Edu)=c("Bachelor","Doctorate","High.school","Master","Doctorate","Hig")
+```
+
+```{r}
+levels(survey$Edu)
+```
+
+##Renvoie une sortie NULL signifiant que la variable Sex n'est pas
+transformée en Facteur
+
+```{r}
+levels(survey$Sex)
+```
+
+#Ici on la transforme en facteur
+
+```{r}
+survey$Sex=factor(survey$Sex)
+```
+
+```{r}
+as.integer(survey$Sex)
+```
+
+```{r}
+survey$Sex
+levels(survey$Sex)=c("Femme","Homme")
+```
+
+```{r}
+survey
+```
+
+#Les étiquettes peuvent être modifiées une par une
+
+```{r}
+levels(survey$Sex)[levels(survey$Sex=="M")]="Male"
+levels(survey$Sex)[levels(survey$Sex=="F")]="Female"
+```
+
+#La réorganisation est délicate et il est préférable de créer un nouveau
+facteur.
+
+```{r}
+survey$Edu =factor(c("H","M","D","B","B"),levels=c("N","P","H","B","M","D"))
+#(par defaut ordered=TRUE)
+#si on ne specifie pas le levels=c("N","P","H","B","M","D") il le fait a sa manier et ne vous plaignez pas
+survey$Edu =factor(c("H","M","D","B","B"))
+as.integer(survey$Edu)
+
+survey$Edu =factor(survey$Edu,levels=c("N","P","H","B","M","D"),ordered=T) 
+as.integer(survey$Edu) 
+```
+
+\subsection{Manipulation des data frames}
+
+▶ Data frames comme listes
+
+```{r}
+## Les deux appels retourne le vecteur des valeurs de la colonne Salary
+survey$Salary
+```
+
+```{r}
+survey["Salary"]
+```
+
+#Mais
+
+```{r}
+survey[["Salary"]] # retourne le vecteur des valeurs de Salary
+
+```
+
+```{r}
+survey[["Salary"]][5]
+survey$Salary[c(-2)]
+attach(survey)
+Sex[1]
+```
+
+```{r}
+ # retourne le salaire du 2nd individu issu de l’enquête
+survey$Salary[2]
+survey[["Salary"]][2]
+```
+
+```{r}
+#Cette commande fonctionnera t-elle? 
+survey["Salary"][2]
+```
+
+#retourne le tableau avec Edu (Colonne n°4) et Salary (colonne n°2)
+seuls
+
+```{r}
+survey$Sex
+survey[c("Edu","Salary")]#Extraire les colonnes Edu et Sex
+survey[1,2]
+```
+
+```{r}
+#retourne la dimension de la base
+length(survey) 
+```
+
+▶ Data frames comme des matrices
+
+```{r}
+#Le salaire de l'individu à la ligne n°4
+survey[4,"Salary"]
+#ou bien (sachant que colonne n°2 c'est la colonne des salaires)
+survey[4,2]
+```
+
+#Que fait la commande suivante?
+
+```{r}
+x[x=1]
+table(survey$Sex)
+Data_homme=survey[survey$Sex=="M",] #Extraie la base correspondante aux salairesdes hommes
+Data_exporter=write_csv(Data_homme,"Data_exporter.csv")
+```
+
+#Que fait la commande suivante
+
+```{r}
+survey[survey$Sex=="F",]
+```
+
+▶ Ajout de lignes et colonnes
+
+#On peut ajouter de nouvelles entrées d'enquête par exemple un individu
+dont les réponses (nouvelle ligne) sont :
+Sex="Female",Salary=28000,Hours=42,Edu=NA,Age=45
+
+```{r}
+#Attention l'ordre des éléments doit suivre l'ordre des colonnes
+survey <- rbind(survey, list("F",28000,42,"NA",45)) 
+```
+
+#On peut aussi ajouter un nouvel individu en spécifiant directement les
+valeurs de colonnes (dans ce cas l'ordre importe peu)
+
+```{r}
+survey = rbind(survey,list(Sex="Male",Salary=25000,Edu="P",Hours=32,Age=30))
+```
+
+▶ Supression de la ligne 8
+
+```{r}
+survey=survey[-c(8),]
+```
+
+▶ Ajout d'une nouvelle colonne (variable) #On veut ajoute ici une
+nouvelle variable Salaire comme suit $$  Wage= Salary/(52*Hours) $$
+
+```{r}
+survey = cbind(survey, Wage=survey$Salary/(52*survey$Hours))
+```
+
+▶ Suppression d'une colonne (ici la colonne 7)
+
+```{r}
+#On extrait la base sans la 6eme colonne (on peut aussi ajouter d'autres)
+survey=subset(survey, select = -c(7))
+```
+
+▶Ordonner un data frame
+
+```{r}
+survey$Hours
+#la commande suivante renvoie les numéros de ligne par ordre croissant du nombre d'heures
+order(survey$Hours)
+```
+
+```{r}
+#les numéros de ligne dans l'ordre décroissant des heures
+order(survey$Hours,decreasing=TRUE)
+```
+
+```{r}
+#On peut recpuer ces indices
+id_order=order(survey$Hours,decreasing=TRUE)
+#On peut afficher les heures en questions
+survey[id_order, "Hours"]
+```
+
+#On peut ordonner directement dans le tableau suivant par exemple les
+heures de travail
+
+```{r}
+survey[order(survey$Hours,decreasing=TRUE),]
+```
+
+\subsection{Exploration}
+
+#Un coup d'oeil rapide
+
+```{r}
+ncol(survey) #retourne le nombre de colonnes nrow(survey) retourne le nombre de lignes
+```
+
+```{r}
+names(survey) #retourne les noms de colonnes
+```
+
+```{r}
+head(survey,n=6) #retourne les n premières lignes
+```
+
+data(hdv2003, package = "questionr") d \<- hdv2003
+
+```{r}
+tail(survey,n=6) #retourne les n dernières lignes
+```
+
+```{r}
+str(survey) #affiche la structure du tableau de données
+```
+
+```{r}
+summary(survey) #affiche le résumé du tableau de données (stat base)
+```
+
+#Résumé de variables (categorielles)
+
+```{r}
+table(survey$Sex) #Afficher les modalités et le nombre d'apparition
+table(survey$Hours)
+```
+
+#Table des pairs (sex,heures)
+
+```{r}
+table(survey$Sex,survey$Hours)
+```
+
+#La liste n'est pas exaustive
+
+\subsubsection{Statistiques elementaires}
+
+```{r}
+sd(survey$Hours)#Ecart type 
+mean(survey$Hours,na.rm=TRUE)
+mean(survey$Hours,na.rm=FALSE)
+```
+
+```{r}
+mean(survey$Age)
+class(survey$Age)
+survey$Age=as.numeric(survey$Age,na.rm=TRUE)
+mean(survey$Age,na.rm=TRUE) #Ne prend pas en compte les NA divise donc par le nombre de valeurs sans NA
+mean(survey$Age,use="complete") 
+```
+
+```{r}
+var(survey$Age,na.rm=TRUE) #probleme si NA
+var(survey$Age, use="complete") #ne prend pas en compte le NA
+cor(survey$Hours,survey$Age,na.rm=TRUE) 
+
+mean(survey$Age,na.rm=TRUE)
+median(survey$Age,na.rm=TRUE)
+quantile(survey$Hours,0.25)
+quantile(survey$Age,0.25,na.rm=TRUE)
+```
+
+#Transformation #Aggregation des salaires suivants le sex et avec comme
+opération la moyenne ou mediane lors du regroupeent
+
+```{r}
+aggregate(Hours~Sex,survey,mean) # On agrege  en fixant le sex (distinct) et on fait la moyenne des heures (car on peut avoir plusieurs heures)
+aggregate(Hours~Sex,survey,median) # On agrega suivant le sex et on prend la médiane des heures
+```
+
+## Agregation
+
+On regoupe suivant le sex et edu d'une part et d'autre part suivant Age
+et heure en prenant la moyenne des (ages et des heures) car on peut
+avoir plusieurs heures et ages
+
+```{r}
+#On agrege en fixant le sex et edu
+aggregate(cbind(Age,Hours)~Sex+Edu,survey,mean)
+```
+
+\section{Séance du 9/12/2024: Dataviz avec GGplot}
+
+##Importation de la base "responses"
+
+```{r}
+df=read.csv("responses.csv",sep=",")#Verifiez l'encodage "," ou ";"
+View(df)
+df=data_frame(df)
+class(df$Music)
+head(df,n=4)
+str(df)
+names(df)
+edit(names(df))
+head(edit(names(df)),n=10)
+```
+
+#Données et couche esthétique principale
+
+```{r}
+#prepare les couches esthétique avec le repère et axes nommés
+ggplot(df,aes(x=Weight,y=Height))
+```
+
+##Ajout de la Couche de géométrie ##Ici nuage de points
+
+```{r}
+ggplot(df,aes(x=Weight,y=Height))+geom_point()
+```
+
+```{r}
+##On peut controler la taille des points
+ggplot(df,aes(x=Weight,y=Height))+geom_point(size=0.5)
+```
+
+##Ici interpolation linéaire
+
+```{r}
+ggplot(df,aes(x=Weight,y=Height))+geom_line()
+#on peut aussi controler l'épaisseur des lignes avec size (tester size=1 ou 0.5)
+```
+
+## Ici des Histogrammes
+
+#binwidth= longueur des classes d'histogrammes
+
+```{r}
+ggplot(df,aes(x=Age)) + geom_histogram(binwidth=1)
+```
+
+##Ici des bar plot
+
+```{r}
+ggplot(df,aes(x=Age)) + geom_bar()
+
+```
+##Box plot du Poids en fonction de l'Age
+```{r}
+ggplot(df,aes(x=Age)) +geom_boxplot(aes(y=Weight,group=Age))
+```
+
+
+## Ici des Moustaches plots (Box plots)
+
+```{r}
+ggplot(df,aes(x="",y=Height)) + geom_boxplot()
+```
+
+
+
+#Couche de géométrie paramétrée avec des couleurs
+
+```{r}
+#spécifiez la couleur des points
+ggplot(df,aes(x=Weight,y=Height))+geom_point(color="red")
+```
+
+#Enlever les lignes contenant les valeurs manquantes
+
+```{r}
+df2=na.rm(df)
+```
+
+##Ajout de la Couche de géométrie ##Ici l'interpolation linéaire
+
+```{r}
+ggplot(df,aes(x=Weight,y=Height))+geom_line(color="orange")
+```
+
+#Histogrammes avec des couleurs
+
+```{r}
+ggplot(df,aes(x=Age)) + geom_histogram(binwidth=1,color="red")
+```
+
+##Distinction des points selon les modalités d'une variable de type
+facteur #Couche à géométrie variable
+
+```{r}
+#La variable colonne (Gender =le facteur sexe) est presente dans la base
+table(df$Gender)
+df$Gender=factor(df$Gender)
+levels(df$Gender)
+#On peut transformer le vide en None (inconnue)
+levels(df$Gender)=c("Inconnue","Femmme","Homme")
+```
+
+#Ici on distingue le nuage de points selon le facteur genre (selon un
+code couleur)
+
+```{r}
+ggplot(df,aes(x=Weight,y=Height)) + geom_point(aes(color=Gender))
+```
+
+#Ici on distingue les courbes selon le facteur genre (selon un code
+couleur)
+
+```{r}
+ggplot(df,aes(x=Weight,y=Height)) + geom_line(aes(color=Gender))
+
+```
+
+#Ici on choisit de distinguer selon une variable continue/numérique
+
+```{r}
+ggplot(df,aes(x=Weight,y=Height)) + geom_point(aes(color=Dance))
+```
+
+#Distinguer le tracé Histogramme selon le sex
+
+```{r}
+ggplot(df,aes(x=Age)) +geom_histogram(aes(fill=Gender),binwidth=1)
+```
+
+#Distinguer  le tracé Bar plot selon le sexe
+#position_dodge(width=1) Dodging preserves the vertical position of an geom while adjusting the horizontal position. 
+```{r}
+#On peut décider de considérer que les valeurs Genre sans NA s'il y a des NA
+ggplot(df[!is.na(df$Gender),],aes(x=Age)) +geom_bar(aes(fill=Gender),position=position_dodge(width=10))
+```
+
+##Remplissage du tracé Box plot en couleur
+```{r}
+ggplot(df,aes(x=Age))+ labs(y="Poids") +
+geom_boxplot(aes(fill="green",y=Weight,group=Age))
+```
+
+```{r}
+ggplot(df,aes(x=Age))+ labs(y="Taille") +
+geom_boxplot(aes(fill="green",y=Height,group=Age))
+```
+
+## Box plot du Poids et de l'Age sur le meme graphique distingué en couleur
+```{r}
+ggplot(df,aes(x=Age)) + labs(y="") +geom_boxplot(aes(fill="green",y=Weight,group=Age)) +
+geom_boxplot(aes(fill="magenta",y=Height,group=Age)) +
+scale_fill_discrete(name="",labels=c("Poids(kg)","Taille(cm)"))
+```
+
+# On peut ajouter une couche d'étiquette/titre
+
+```{r}
+ggplot(df,aes(x=Weight,y=Height)) + geom_point(aes(color=Gender))+
+labs(title="Nuage de points selon le genre",x="Poids (kg)",y="Taille (cm)")
+```
+
+```{r}
+#stat de base sur la collone Weight (poids)
+summary(df$Weight)
+#stat de base sur la collone Height (taille)
+summary(df$Height)
+```
+
+#Couche de filtrage
+
+```{r}
+ggplot(df,aes(x=Weight,y=Height)) +
+geom_point(aes(color=Gender))+labs(title="Nuage de points selon le genre",x="Poids (kg)",y="Taille(cm)") + coord_cartesian(xlim=c(40,120),ylim=c(150,200))
+```
+
+#Tracés de densité en nid d'abeille (nécessite un package)
+
+```{r}
+#color :diffusion du bleu vers le rouge sous forme de nid d'abeille geom_hex
+ggplot(df,aes(x=Weight,y=Height)) + geom_hex() +
+lims(y=c(125,200))+scale_fill_gradientn(colors=c("skyblue","red"))
+```
+
+##Tracés linéaires: superposition de courbes
+```{r}
+ggplot(data.frame(x=seq(-pi,pi,0.01)),aes(x)) + geom_line(color="green",aes(y=sin(x)))+
+geom_line(color="red",aes(y=cos(x)))+labs(title="Fonctions sinus (vert) et cosinus (rouge)",x="abscisse",y="")
+```
+
+##Ajout de bandes (geom_smooth)
+
+```{r}
+ggplot(df[!is.na(df$Gender),],aes(x=Weight,y=Height)) + geom_point(aes(color=Gender)) +geom_smooth(aes(color=Gender)) + lims(y=c(150,210))
+```
+
+##Tracés à facettes 
+
+```{r}
+table(df$Smoking)
+class(df$Smoking)
+#Si on veut le mettre en facteur
+df$Smoking=factor(df$Smoking)
+levels(df$Smoking)
+#Si on veut recoder les modalités
+levels(df$Smoking)=c("None","Current","Former","Never","Tried")
+```
+###Ici le poids en fonction de la taille en fonction du statu tabagisme en facettes
+
+```{r}
+ggplot(df,aes(x=Weight,y=Height)) +geom_point(size=1)+ facet_grid(~Smoking)
+```
+
+##Ici le poids en fonction de la taille distingué par le sexe et les facettes en fonction du statu tabagisme (filtrage des valeurs)
+```{r}
+ggplot(df,aes(x=Weight,y=Height)) +geom_point(size=0.5) + lims(x=c(40,120),y=c(150,215)) + facet_grid(Gender~Smoking)
+```
+
+##Enregistrer des tracés en fichiers dans un dossier
+#Par defaut dans le repertoire courant
+```{r}
+p=ggplot(df,aes(x=Weight,y=Height)) + geom_point(aes(color=Gender))
+ggsave("file.png",plot=p)
+```
+#On peut spécifier le dossier sur son ordinateur en controlant la taille de l'image
+```{r}
+p=ggplot(df,aes(x=Weight,y=Height)) + geom_point(aes(color=Gender))
+ggsave("/Users/solym/Desktop/Travaux-ENSAR/exemple.png",plot=p,width=10,height=7)
+```
+
+
+
+
+
+```{r}
+df <- data.frame(
+  col1 = c(1, 2, NA, 4),
+  col2 = c(NA, 2, 3, 4)
+)
+df
+# Supprimer les lignes avec des valeurs manquantes
+df_clean <- df[complete.cases(df),]
+```
+
+
+```{r}
+df
+# Suppression des lignes avec des NA uniquement dans les colonnes col1 et col2
+df_clean <- df[complete.cases(df[, c("col1", "col2")]), ]
+
+print(df_clean)
+```
+
+```{r}
+df <- data.frame(
+  col1 = c(1, 2, NA, 4),
+  col2 = c(NA, 2, 3, 4),
+  col3 = c(5, 6, 7, 8)
+)
+df
+# Supprimer les colonnes contenant des NA
+df_clean <- df[, colSums(is.na(df)) == 0]
+
+print(df_clean)
+```
+
+```{r}
+column_means =apply(df, 2, mean, na.rm = TRUE)
+row_means <- apply(df, 1, mean, na.rm = TRUE)
+```
+
+
+```{r}
+df <- data.frame(
+  col1 = c(1, 2, 2, 3, 4, 4),
+  col2 = c("A", "B", "B", "C", "D", "D")
+)
+unique(df)
+library("dplyr")
+df_unique =df %>% distinct()
+
+print(df_unique)
+```
+
+```{r}
+df <- data.frame(
+  col1 = c(1, 2, NA, 4),
+  col2 = c(NA, 2, 3, 4),
+  col3 = c(5, NA, 7, 8)
+)
+
+# Suppression des lignes avec des NA uniquement dans les colonnes col1 et col2
+df_clean <- df[complete.cases(df[, c("col1", "col2")]), ]
+
+print(df_clean)
+```
+
+```{r}
+df <- data.frame(
+  name = c("Alice", "Bob", "Charlie", "David"),
+  age = c(25, 30, 35, 40)
+)
+
+# Recoder l'âge en groupes
+df <- df %>%
+  mutate(age_group = case_when(
+    age < 30 ~ "Young",
+    age >= 30 & age < 40 ~ "Middle-aged",
+    age >= 40 ~ "Senior"
+  ))
+
+print(df)
+```
+
+```{r}
+df <- df %>%
+  mutate(age_bis = case_when(
+    age_group=="Young" ~ "Jeune",
+    age_group=="Middle-aged" ~ "Junior",
+    age_group=="Senior" ~ "Adulte"
+  ))
+df
+```
+
+\subsubsection{Text mining}
+* Manipulation des données textuelles *
+
+# Données textuelles
+```{r}
+library(stringr)
+```
+#Convertir en majuscules / minuscules
+```{r}
+str_to_lower("Nous sommes l'ensar")
+str_to_upper("Nous sommes l'ensar")
+str_to_title("Nous sommes l'ensar")
+```
+
+```{r}
+data_texte="Ensar 2024"
+code_insee ="1001"
+length(code_insee)
+```
+
+
+```{r}
+str_pad(code_insee,5, side = "right")
+```
+
+
+```{r}
+str_pad(data_texte,11, pad="Z", side="right")
+```
+
+
+```{r}
+#contient dplyr, lubridate, etc
+library(tidyverse)
+```
+
+On va crée le table de données textuelles suivant
+
+
+```{r}
+data_textuelle <- data.frame(
+nom = c("Mr Manou-Abi Solym", "Mme Anabelle Dupont", "M. Slimane Fati", "Mme Fatou Wade"),
+adresse = c("3 rue des Fleurs", "47 avenue de la Libération", "12 rue Archimède", "221 avenue de la Libération"),
+ville = c("Niort", "Poitiers", "Paris", "Marseille")
+)
+data_textuelle$nom
+```
+
+```{r}
+data_textuelle <- tibble(
+nom = c("Mr Manou-Abi Solym", "Mme Anabelle Dupont", "M. Slimane Fati", "Mme Fatou Wade"),
+adresse = c("3 rue des Fleurs", "47 avenue de la Libération", "12 rue Archimède", "221 avenue de la Libération"),
+ville = c("Niort", "Poitiers", "Paris", "Marseille")
+)
+data_textuelle$nom
+```
+
+
+```{r}
+Data=data_textuelle%>%mutate(nom_maj= str_to_upper(nom), adresse_maj=str_to_upper(adresse), ville_maj=str_to_upper(ville))
+```
+
+```{r}
+data_textuelle1=data_textuelle%>%dplyr::select(nom,adresse,ville)%>%dplyr::mutate(Nom=str_to_upper(nom), Adresse=str_to_upper(adresse), Ville=str_to_upper(ville))
+data_textuelle1
+```
+
+
+```{r}
+str_split(Data$adresse_complete,"-")
+Data=data_textuelle%>%mutate(adresse_complete=str_c(nom, adresse,str_to_upper(ville),sep="|"))%>%separate(nom, into=c("genre", "prenom", "nom"))
+Data
+```
+```{r}
+str_detect(Data$adresse, "Libération")
+```
+```{r}
+id_out=str_which(Data$adresse, "Libération")
+```
+```{r}
+str_extract(Data$adresse, "[:digit:]")
+str_replace(Data$adresse, "[:digit:]", "Numero" )
+```
+
+```{r}
+str_count(Data$adresse, "Libération")
+```
+
+```{r}
+str_subset(Data$adresse, "Libération")
+```
+```{r}
+data_textuelle%>%mutate(nom=str_replace(nom, "Mr", "M."))
+```
+
+```{r}
+Montant=c("40$","30$")
+
+```
+
+```{r}
+as.numeric(str_replace(Montant, pattern="\\$",replacement=""))
+mean(as.numeric(str_replace(Montant, pattern="\\$",replacement="")))
+```
+
+
+
+```{r}
+min_index_valeurs <- function(matrix) {
+  min_valeur <- Inf # initialise la plus petite valeur possible
+  min_indices <- c(-1, -1)  # Indices initiaux invalides
+
+  for (i in 1:nrow(matrix)) {
+    for (j in 1:ncol(matrix)) {
+      if (matrix[i, j] != 0 && matrix[i, j] < min_valeur){
+        min_valeur <- matrix[i, j]
+        min_indices <- c(i, j)  # Stocke les indices
+      }
+    }
+  }
+  
+  return(c(min_indices,min_valeur))
+}
+
+# Exemple d'utilisation
+mat <- matrix(c(3, 8, 1, 
+                5, 2, 7, 
+                6, 4, 9), 
+              nrow = 3, byrow = TRUE)
+
+print(find_min_index(mat))  # Résultat attendu : (1, 3) en indexation R
+```
+
+```{r}
+calcul_ecart <- function(matrice_dissimilarity, A1) {
+  # Initialisation du dictionnaire
+  ecart <- list()
+  # Parcours de chaque ligne de la matrice de dissimilarité
+  for (i in 1:nrow(matrice_dissimilarite)) {
+    # Si l'indice i n'est pas dans A1
+    if (!(i %in% A1)) {
+  # Trouver la valeur minimale parmi les distances avec les éléments dans A1
+      ecart[[i]] <- min(matrice_dissimilarite[i, A1])
+    }
+  }
+  return(ecart)
+}
+```
+
+```{r}
+matrice_dissimilarite <- matrix(c(
+  0, 2, 3, 4, 5,
+  2, 0, 1, 6, 7,
+  3, 1, 0, 8, 9,
+  4, 6, 8, 0, 10,
+  5, 7, 9, 10, 0
+), nrow = 5, byrow = TRUE)
+
+# Liste d'indices A2
+A1 <- c(2, 4)
+
+# Appel de la fonction
+ecarts <- calcul_ecart(matrice_dissimilarite, A1)
+
+print(ecarts)
+```
+
+\section{DATAVIZ}
+
+```{r}
+### DATAVIZ
+data("economics")
+data("seals")
+```
+
+
+#Graphical primitives
+
+a<-ggplot(economics,aes(date,unemploy))
+b<-ggplot(seals, aes (x=long,y=lat))
+a+geom_blank()
+b+geom_curve(aes(yend=lat+100,xend=long+100,curvature=1))
+a+geom_path(lineed="butt", linejoin="round",linemitre=1)
+a+geom_polygon(aes(group=group(economics))) #on arrive pas à trouver un polygone
+b+geom_rect(aes(xmin = long, ymin=lat, xmax= long + 1, ymax = lat + 1))
+a + geom_ribbon(aes(ymin=unemploy - 900, ymax=unemploy + 900))
+b+geom_abline(aes(intercept=0, slope=1))
+b+geom_hline(aes(yintercept=lat))
+b+geom_vline(aes(xintercept=long))
+b+geom_segment(aes(yend=lat+1, xend=long+1))
+b + geom_spoke(aes(angle = 1:1155, radius = 1))
+
+#One variable continuous
+data(mpg)
+c <- ggplot(mpg, aes(hwy))
+c2 <- ggplot(mpg)
+c + geom_area(stat = "bin")
+c + geom_density(kernel = "gaussian")
+c + geom_dotplot()
+c + geom_freqpoly()
+c + geom_histogram(binwidth = 5)
+c2 + geom_qq(aes(sample = hwy))
+
+#discrete
+
+d <- ggplot(mpg, aes(fl))
+d + geom_bar()
+
+#two variable both continuous
+data(mpg)
+e <- ggplot(mpg, aes(cty, hwy))
+e + geom_label(aes(label = cty), nudge_x = 1, nudge_y = 1) 
+e + geom_jitter(height = 2, width = 2) 
+e + geom_point() 
+e + geom_quantile() 
+e + geom_rug(sides = "bl")
+e + geom_smooth(method = lm)
+e + geom_text(aes(label = cty), nudge_x = 1, nudge_y = 1) 
+
+
+#discrete x , continuous y
+
+f <- ggplot(mpg, aes(class, hwy))
+f + geom_col()
+ggplot(mpg,aes(x=class,y=hwy,color=class)) + geom_col() 
+ggplot(mpg,aes(x=class,y=hwy,color=class)) + + geom_boxplot() 
+f + geom_dotplot(binaxis = "y", stackdir = "center") 
+f + geom_violin(scale = "area")
+
+# discrete x , discrete y
+data("diamonds")
+g <- ggplot(diamonds, aes(cut, color))
+g + geom_count() 
+
+
+#continuous bivariate distribution
+h <- ggplot(diamonds, aes(carat, price))
+h + geom_bin2d(binwidth = c(0.25, 500)) 
+h + geom_density2d()
+h + geom_hex)   ## installer d'abord le package "hexbin" obligatoire
+
+#continuous function 
+
+i <- ggplot(economics, aes(date, unemploy))
+
+i + geom_area()
+i + geom_line()
+i + geom_step(direction = "hv")
+
+#visualizing error 
+
+df <- data.frame(grp = c("A", "B"), fit = 4:5, se = 1:2) 
+j <- ggplot(df, aes(grp, fit, ymin = fit-se, ymax = fit+se))
+
+j + geom_crossbar(fatten = 2)
+j + geom_errorbar()
+j + geom_linerange()
+j + geom_pointrange()
+
+#maps
+
+data <- data.frame(murder = USArrests$Murder,state = tolower(rownames(USArrests)))
+map <- map_data("state")   #installer obligatoirement le package "maps"
+k <- ggplot(data, aes(fill = murder))
+k + geom_map(aes(map_id = state), map = map) + expand_limits(x = map$long, y = map$lat)
+
+
+#three variables
+
+seals$z <- with(seals, sqrt(delta_long^2 + delta_lat^2))
+l <- ggplot(seals, aes(long, lat))
+l + geom_contour(aes(z = z))
+l + geom_raster(aes(fill = z), hjust=0.5, vjust=0.5, interpolate=FALSE)
+l + geom_tile(aes(fill = z))
